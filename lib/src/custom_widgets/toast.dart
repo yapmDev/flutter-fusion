@@ -1,25 +1,38 @@
+/*
+  author: yapmDev
+  lastModifiedDate: 27/01/25
+  repository: https://github.com/yapmDev/flutter_fusion
+ */
+
 import 'package:flutter/material.dart';
 
-/// Displays a toast message in the given [context].
+/// Displays a floating message with an optional action.
 ///
 /// @Params:
 ///
-/// [message] : the message will be shown (required).
+/// [message] : The message will be shown (required).
 ///
-/// [context] : determines where the toast will be shown (required).
+/// [context] : Place in the widget tree where this toast is attached.
 ///
-/// [decoration] : can be used to customize the appearance of the toast container.
+/// [decoration] : Can be used to customize the appearance of the toast container.
 ///
-/// [duration] : sets how long the toast will be visible (default is 2 seconds).
+/// [duration] : Sets how long the toast will be visible (default is 2 seconds).
 ///
-/// [leadingIcon] : can be an optional icon displayed before the message.
+/// [leadingIcon] : Can be an optional icon displayed before the message.
 ///
-/// [textStyle] : can be used to customize the appearance of the message text.
+/// [textStyle] : Can be used to customize the appearance of the message text.
 ///
-/// [position] : the position on the screen where this toast will show up (default is at the
-/// bottom).
+/// [position] : The position on the screen where this toast will show up. This method works
+/// by overlaying a custom container as if it were in a [Stack], that is why [Alignment] has control
+/// of the position.
 ///
-/// See also the [Builder] widget, could be necessary to make sure the most inner context is
+/// [margin] : Empty space to surround the toast.
+///
+/// [onAction] : An optional callback that is triggered when the TextButton is tapped.
+///
+/// [labelAction] : The name of the action itself.
+///
+/// @See [Builder], could be necessary to make sure the most inner context is
 /// provided, specially when you use a specific theme with [ToastTheme].
 void showToast({
   required BuildContext context,
@@ -28,30 +41,38 @@ void showToast({
   Duration duration = const Duration(seconds: 2),
   Icon? leadingIcon,
   TextStyle? textStyle,
-  ToastPosition position = ToastPosition.bottom
+  Alignment position = Alignment.bottomCenter,
+  EdgeInsetsGeometry margin = const EdgeInsets.all(10.0),
+  ToastCallback? onAction,
+  String? actionLabel
 }) {
+  assert(onAction == null || actionLabel != null,
+  "An action tag is required if you want to do some callback");
   ToastThemeData toastTheme = ToastTheme.of(context);
   OverlayEntry overlayEntry = OverlayEntry(
-    builder: (context) => Positioned(
-      top: position.fromTop,
-      left: position.fromLeft,
-      right: position.fromRight,
-      bottom: position.fromBottom,
-      child: Center(
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            decoration: decoration ?? toastTheme.decoration,
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (leadingIcon != null) leadingIcon,
-                if (leadingIcon != null) const SizedBox(width: 10.0),
-                Text(message, style: textStyle ?? toastTheme.textStyle),
-              ],
-            ),
+    builder: (context) => Material(
+      color: Colors.transparent,
+      child: Align(
+        alignment: position,
+        child: Container(
+          margin: margin,
+          decoration: decoration ?? toastTheme.decoration,
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisSize: onAction != null ? MainAxisSize.max : MainAxisSize.min,
+            children: [
+              if (leadingIcon != null) leadingIcon,
+              if (leadingIcon != null) const SizedBox(width: 24.0),
+              Flexible(
+                fit: onAction != null ? FlexFit.tight : FlexFit.loose,
+                child: Text(
+                  message,
+                  style: textStyle ?? toastTheme.textStyle,
+                ),
+              ),
+              if (onAction != null) TextButton(onPressed: onAction, child: Text(actionLabel!))
+            ],
           ),
         ),
       ),
@@ -143,36 +164,13 @@ extension ToastThemeExtension on ThemeData {
     return extension<ToastThemeData>() ??
         ToastThemeData(
           decoration: BoxDecoration(
-            border: Border.all(color: colorScheme.onBackground),
+            border: Border.all(color: colorScheme.onSurface),
             borderRadius: const BorderRadius.all(Radius.circular(20.0)),
-            color: colorScheme.background,
+            color: colorScheme.surface,
           ),
-          textStyle: const TextStyle(),
+          textStyle: textTheme.bodyLarge,
         );
   }
 }
 
-///The possibles positions for the toasts which will be display using [showToast].
-enum ToastPosition{
-  top(fromTop: 50.0, fromLeft: 0.0, fromRight: 0.0),
-  topLeft(fromTop: 50.0, fromLeft: 50.0),
-  topRight(fromTop: 50.0, fromRight: 50.0),
-  left(fromTop: 0.0, fromLeft: 50.0, fromBottom: 0.0),
-  center(fromTop: 0.0, fromLeft: 0.0, fromRight: 0.0, fromBottom: 0.0),
-  right(fromTop: 0.0, fromRight: 50.0, fromBottom: 0.0),
-  bottom(fromBottom: 50.0, fromLeft: 0.0, fromRight: 0.0),
-  bottomLeft(fromBottom: 50.0, fromLeft: 50.0),
-  bottomRight(fromBottom: 50.0, fromRight: 50.0);
-
-  const ToastPosition({
-    this.fromTop,
-    this.fromLeft,
-    this.fromRight,
-    this.fromBottom,
-  });
-
-  final double? fromTop;
-  final double? fromLeft;
-  final double? fromRight;
-  final double? fromBottom;
-}
+typedef ToastCallback = void Function();
