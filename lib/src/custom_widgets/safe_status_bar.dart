@@ -19,7 +19,7 @@ import 'package:flutter/services.dart';
 ///   home: SafeStatusBar(
 ///     child: MyAppWidget(),
 ///     statusBarColorResolver:
-///       (isDarkMode) => isDarkMode ? Colors. : Colors.greenAccent,
+///       (isDarkMode) => isDarkMode ? randomColor() : randomColor(),
 ///   ),
 /// )
 /// ```
@@ -56,10 +56,14 @@ class SafeStatusBar extends StatelessWidget {
       statusBarBrightness: isDarkMode ? Brightness.dark : Brightness.light,
     ));
     final double statusBarHeight = MediaQuery.of(context).padding.top;
-    return Material(
-      child: Padding(
-        padding: EdgeInsets.only(top: statusBarHeight),
-        child: child,
+    return MediaQuery.removePadding(
+      context: context,
+      removeTop: true,
+      child: Material(
+        child: Padding(
+          padding: EdgeInsets.only(top: statusBarHeight),
+          child: child,
+        ),
       ),
     );
   }
