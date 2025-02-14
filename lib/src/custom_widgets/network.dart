@@ -64,6 +64,7 @@ class _NetworkCheckerState extends State<NetworkChecker>{
 
   @override
   void initState() {
+    _checkServerAvailability();
     _startMonitoring();
     super.initState();
   }
@@ -105,7 +106,7 @@ class _NetworkCheckerState extends State<NetworkChecker>{
 
 ///A notifier for connection status listeners used on [NetworkChecker].
 class NetworkNotifier extends ChangeNotifier {
-  bool _isConnected = false;
+  bool _isConnected = true;
   bool get isConnected => _isConnected;
 
   ///Notify the listeners with a new connection status.
