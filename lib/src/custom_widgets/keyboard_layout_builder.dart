@@ -1,3 +1,9 @@
+/*
+  author: yapmDev
+  lastModifiedDate: 13/02/25
+  repository: https://github.com/yapmDev/flutter_fusion
+ */
+
 import 'package:flutter/material.dart';
 
 ///Allows you to customize the views that interact with the keyboard based on its state
