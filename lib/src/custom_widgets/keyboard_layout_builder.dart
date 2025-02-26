@@ -1,47 +1,24 @@
 /*
   author: yapmDev
-  lastModifiedDate: 20/02/25
+  lastModifiedDate: 24/02/25
   repository: https://github.com/yapmDev/flutter_fusion
  */
 
 import 'package:flutter/material.dart';
 
-///Allows you to customize the views bellow in the hierarchy that interact with the keyboard based
-/// on its state (active or hidden).
+/// A layout builder for views which interact with keyboard.
 class KeyboardLayoutBuilder extends StatefulWidget {
 
-  /// Creates a KeyboardLayoutBuilder with the given [builder].
+  /// Creates custom and reactive views based on the keyboard state (active or hidden). Leaving
+  /// important content visible at your choice when the keyboard is being displayed.
   ///
   /// @Warnings
   ///
+  /// - If you are using a [Scaffold] set `resizeToAvoidBottomInset` to `false`. This solution is a
+  /// better way to handle that.
+  ///
   /// - If [allowOverlap] is [false] and spacing is not handled properly it can cause an
-  /// [OverflowError].
-  ///
-  /// - To this works properly remember set [Scaffold.resizeToAvoidBottomInset] to [false] if you
-  /// are using it. This solution is a better way to handle that.
-  ///
-  /// @Usage Tip
-  ///
-  /// If the structure is a little more complex, avoid repeated calls to this constructor or
-  /// parameter passing by globally listening to the keyboard state.
-  ///
-  /// Note that there is no [KLB] that wraps this view directly.
-  /// ```dart
-  /// return Material(
-  ///   child: ValueListenableBuilder(
-  ///     //child: ImmutableChild() widget whose state does not depend on keyboard visibility,
-  ///     valueListenable: KeyboardController.isKeyboardVisible,
-  ///     builder: (context, isVisible, immutableChild) => Column(
-  ///       children: [
-  ///         //immutableChild!
-  ///         Text(isVisible ? "Visible" : "Not Visible"),
-  ///         TextField(),
-  ///       ]`,
-  ///     ),
-  ///   ),
-  /// );
-  /// ```
-  /// @See [ValueListenableBuilder] for a better understanding.
+  /// `OverflowError`. In that case you probably also need a scrollable widget.
   const KeyboardLayoutBuilder({
     super.key,
     required this.builder,
@@ -51,20 +28,26 @@ class KeyboardLayoutBuilder extends StatefulWidget {
     this.backgroundColor
   });
 
-  ///Represents the child of this widget. This function will be called whenever the keyboard state
-  ///changes.
+  /// Represents the child of this widget. This function will be called whenever the keyboard state
+  /// changes.
   final Widget Function(BuildContext context, bool isKeyboardVisible) builder;
 
-  ///The default value is [true], which corresponds to the default keyboard overlap. If [false]
-  ///then the [builder] will be forced to fill the area not covered by the keyboard.
+  /// The default value is [true], which corresponds to the default keyboard overlap. If [false]
+  /// then the [builder] will be forced to fill the area not covered by the keyboard.
   final bool allowOverlap;
 
+  /// Useful only if [allowOverlap] is `false`.
+  ///
   /// Curve of the padding animation.
   final Curve curve;
 
+  /// Useful only if [allowOverlap] is `false`.
+  ///
   /// Duration of the padding animation when the keyboard appears or disappears.
   final Duration animationDuration;
 
+  /// Useful only if [allowOverlap] is `false`.
+  ///
   /// Color used to fill the space left by the keyboard when it disappears, as the padding that was
   /// pushing the UI up is not immediately removed.
   ///
@@ -104,14 +87,13 @@ class _KeyboardLayoutBuilderState extends State<KeyboardLayoutBuilder> with Widg
     final isVisible = bottomInset > 0;
     if (isVisible != _isKeyboardVisible) {
       setState(() => _isKeyboardVisible = isVisible);
-      KeyboardController.isKeyboardVisible.value = isVisible;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final double bottomInset = MediaQuery.of(context).viewInsets.bottom;
-    return AnimatedContainer(
+    return !widget.allowOverlap ? AnimatedContainer(
       color: widget.backgroundColor ?? Theme.of(context).scaffoldBackgroundColor,
       curve: widget.curve,
       duration: widget.animationDuration,
@@ -119,13 +101,6 @@ class _KeyboardLayoutBuilderState extends State<KeyboardLayoutBuilder> with Widg
         bottom: widget.allowOverlap ? 0.0 : bottomInset,
       ),
       child: widget.builder(context, _isKeyboardVisible),
-    );
+    ) : widget.builder(context, _isKeyboardVisible);
   }
-}
-
-///Manages the global state of the keyboard, providing a [ValueNotifier] to monitor its visibility.
-class KeyboardController {
-
-  ///Notify whether the keyboard is visible or not through the hierarchy.
-  static final ValueNotifier<bool> isKeyboardVisible = ValueNotifier(false);
 }
