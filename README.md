@@ -1,43 +1,143 @@
-<<<<<<< HEAD
-# flutter_fusion
-=======
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# 📦 Flutter Fusion
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/guides/libraries/writing-package-pages).
+A lightweight Flutter package that offers a set of **widgets**, **utilities**, and **extensions** to **enhance development efficiency** and **optimize user experience**. **No external dependencies** – fully based on the official Flutter SDK.
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-library-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/developing-packages).
--->
+---
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+## ✨ Features
 
-## Features
+- ✅ Reusable widget set for various common UI elements.
+- ✅ Utilities for rapid development (e.g., generating random numbers and colors).
+- ✅ Ready-to-use UX enhancements (such as **floating Toast** messages and **StatusBarController**).
+- ✅ Handy extensions on native types.
+- ✅ Lightweight, fast, and easy to integrate.
+- ✅ No external dependencies – everything is built with the Flutter SDK.
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+---
 
-## Getting started
+## 🚀 Installation
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+Add the package to your `pubspec.yaml` file:
 
-## Usage
-
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
-
-```dart
-const like = 'sample';
+```yaml
+dependencies:
+  flutter_fusion: latest
 ```
 
-## Additional information
+Then run:
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
->>>>>>> 198f85c (package created)
+```bash
+flutter pub get
+```
+
+---
+
+## 🔥 API References
+
+### Toolbox
+
+#### 🎲 Random Number Generation
+
+```dart
+int value = randomNumber(10, 100);
+```
+
+#### 🎨 Random Color Generation
+
+```dart
+Color random = randomColor();
+```
+
+### Widgets
+
+#### 🗨️ Show Toast
+
+Displays a fully customizable floating message with an optional action.
+
+```dart
+showToast(
+  context: context,
+  message: 'This is a test message',
+  duration: Duration(seconds: 3),
+  leadingIcon: Icon(Icons.info),
+  actionLabel: 'Undo',
+  onAction: () {
+    print("Action executed");
+  },
+);
+```
+
+#### 📱 Status Bar Controller
+
+`StatusBarController` allows you to customize the appearance and behavior of the status bar on mobile devices.
+
+```dart
+StatusBarController(
+  statusBarColorResolver: (isDarkMode) {
+    return isDarkMode ? randomColor() : randomColor();
+  },
+  allowBrightnessContrast: true,
+  allowOverlap: false,
+  child: YourWidget(),
+);
+```
+
+#### 📝 Onboarding Screen
+
+The `OnboardingScreen` widget creates an interactive introduction to your app with flip animations between presentation cards.
+
+```dart
+List<PresentationData> views = [
+  PresentationData(
+    'assets/intro_image1.png',
+    'Welcome',
+    'Discover the most important features of our app.',
+  ),
+  PresentationData(
+    'assets/intro_image2.png',
+    'Personalize Your Experience',
+    'Adjust settings to your preferences.',
+  ),
+  // Add more views if needed
+];
+
+OnboardingScreen(
+  viewData: views,
+  navigateTo: const HomeScreen(),
+  localizationClassType: GeneratedLocalizationsClass,
+);
+```
+
+#### 🖥️ KeyboardLayoutBuilder (Reactive Layout for Views with Keyboard)
+
+The `KeyboardLayoutBuilder` widget allows you to create views that respond to the keyboard's visibility and adjusting the UI accordingly.
+
+```dart
+KeyboardLayoutBuilder(
+  allowOverlap: false,
+  backgroundColor: Colors.white,
+  builder: (context, isKeyboardVisible) {
+    return Column(
+      children: [
+        TextField(),
+        if (!isKeyboardVisible) ...[
+          // Additional widgets that should appear when the keyboard is hidden
+        ]
+      ],
+    );
+  },
+);
+```
+
+---
+
+## 🛠️ Contribute
+
+Got new ideas or improvements? We welcome contributions!  
+Fork the repo, create a branch, and submit a pull request with the description of your changes.
+
+---
+
+## 📜 License
+
+This package is licensed under the [MIT License](LICENSE).
