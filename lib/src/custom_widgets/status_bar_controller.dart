@@ -1,6 +1,6 @@
 /*
   author: yapmDev
-  lastModifiedDate: 5/03/25
+  lastModifiedDate: 09/05/25
   repository: https://github.com/yapmDev/flutter_fusion
  */
 
@@ -14,7 +14,7 @@ import 'package:flutter/services.dart';
 /// @Warning:
 ///
 /// Widgets like [AppBar] and [SliverAppBar] automatically disable status bar overlay and their
-/// style is set via the `systemOverlayStyle` property. So you should not use this API in views
+/// style is set via the `systemOverlayStyle` property. So you should `not` use this API in views
 /// where these widgets are already in use.
 class StatusBarController extends StatelessWidget {
 
@@ -31,21 +31,31 @@ class StatusBarController extends StatelessWidget {
   /// behavior.
   final bool allowOverlap;
 
+  /// UI mode behavior.
+  ///
+  /// See also:
+  ///
+  ///   * `SystemUiMode` to learn about the different behaviors and the Android API that each one requires.
+  ///
+  ///   *  Migration guide proposed (if applicable).
+  ///
+  ///   https://docs.flutter.dev/release/breaking-changes/default-systemuimode-edge-to-edge.
+  final SystemUiMode? uiMode;
+
   /// The child of this widget. Normally the view itself.
   final Widget child;
 
   ///Wraps any view in to customize the status bar behavior for that view in particular.
   const StatusBarController({
     super.key,
+    required this.child,
     this.statusBarColorResolver,
     this.allowBrightnessContrast = true,
     this.allowOverlap = true,
-    required this.child,
+    this.uiMode
   });
 
   @override
-
-
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
@@ -62,6 +72,10 @@ class StatusBarController extends StatelessWidget {
       statusBarIconBrightness: statusBarIconBrightness,
       statusBarBrightness: statusBarBrightness,
     ));
+
+    SystemChrome.setEnabledSystemUIMode(
+      uiMode ?? SystemUiMode.edgeToEdge,
+    );
 
     final double statusBarHeight = MediaQuery.of(context).padding.top;
 
