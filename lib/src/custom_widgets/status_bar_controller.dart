@@ -31,6 +31,8 @@ class StatusBarController extends StatelessWidget {
   /// behavior.
   final bool allowOverlap;
 
+  /// @Beta-Feature
+  ///
   /// UI mode behavior.
   ///
   /// See also:
@@ -40,48 +42,43 @@ class StatusBarController extends StatelessWidget {
   ///   *  Migration guide proposed (if applicable).
   ///
   ///   https://docs.flutter.dev/release/breaking-changes/default-systemuimode-edge-to-edge.
-  final SystemUiMode? uiMode;
+  // TODO("yapmDev")
+  // - Download API 35 (android 15) x86 Google Play Image to test this.
+  final SystemUiMode? systemUiMode;
 
   /// The child of this widget. Normally the view itself.
-  final Widget child;
+  final Widget Function(double statusBarHeight) builder;
 
   ///Wraps any view in to customize the status bar behavior for that view in particular.
   const StatusBarController({
     super.key,
-    required this.child,
+    required this.builder,
     this.statusBarColorResolver,
     this.allowBrightnessContrast = true,
     this.allowOverlap = true,
-    this.uiMode
+    this.systemUiMode
   });
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final statusBarIconBrightness = allowBrightnessContrast
         ? (isDarkMode ? Brightness.light : Brightness.dark)
         : (isDarkMode ? Brightness.dark : Brightness.light);
-
     final statusBarBrightness = allowBrightnessContrast
         ? (isDarkMode ? Brightness.dark : Brightness.light)
         : (isDarkMode ? Brightness.light : Brightness.dark);
-
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: statusBarColorResolver?.call(isDarkMode) ?? Colors.transparent,
       statusBarIconBrightness: statusBarIconBrightness,
       statusBarBrightness: statusBarBrightness,
     ));
-
-    SystemChrome.setEnabledSystemUIMode(
-      uiMode ?? SystemUiMode.edgeToEdge,
-    );
-
+    SystemChrome.setEnabledSystemUIMode(systemUiMode ?? SystemUiMode.edgeToEdge);
     final double statusBarHeight = MediaQuery.of(context).padding.top;
-
     return Padding(
       padding: EdgeInsets.only(top: allowOverlap ? 0.0 : statusBarHeight),
-      child: child,
+      child: builder.call(statusBarHeight)
     );
   }
 }
