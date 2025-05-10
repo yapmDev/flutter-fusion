@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_fusion/flutter_fusion.dart';
 
 void main() {
@@ -15,8 +16,12 @@ class MyApp extends StatelessWidget {
       home: StatusBarController(
         statusBarColorResolver: (_) => Colors.blue,
         allowBrightnessContrast: false,
-        builder: (_) => Material(child: Text("HELLO WORLD")),
         allowOverlap: false,
+        systemUiMode: SystemUiMode.manual,
+        overlays: [SystemUiOverlay.top],
+        builder: (_) => Scaffold(
+          body: Text("HELLO WORLD")
+        ),
       )
     );
   }

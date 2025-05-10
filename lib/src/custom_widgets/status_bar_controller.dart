@@ -7,15 +7,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// Designed for mobile platforms. Allows you to configure aspects of the status bar such as
-/// overlay, so that the content of a view is not overlapped by the status bar. The color and
-/// brightness will automatically adapt depending on the theme mode.
+/// {@template status_bar_controller_description}
+/// Designed for mobile platforms. Allows you to configure aspects of the status bar.
 ///
 /// @Warning:
 ///
-/// Widgets like [AppBar] and [SliverAppBar] automatically disable status bar overlay and their
-/// style is set via the `systemOverlayStyle` property. So you should `not` use this API in views
-/// where these widgets are already in use.
+/// This widget is powered by the [SystemChrome] service class, therefore, widgets like [AppBar] and [SliverAppBar]
+/// automatically override the style settings. Therefore, you should not use this API in
+/// views where these widgets are already in use. However, styling can still be controlled via the
+/// `systemOverlayStyle` property they provide.
+/// {@endtemplate}
 class StatusBarController extends StatelessWidget {
 
   /// An optional color resolver based on the current theme mode. If [null]
@@ -27,37 +28,38 @@ class StatusBarController extends StatelessWidget {
   /// `false`, the brightness of the elements would be the same as the current theme.
   final bool allowBrightnessContrast;
 
-  /// Allows if the status bar can overlap the UI. `true` by default like the default system
-  /// behavior.
+  /// Allows if the status bar can overlap the UI. `true` by default like the default system behavior.
   final bool allowOverlap;
 
-  /// @Beta-Feature
-  ///
-  /// UI mode behavior.
-  ///
-  /// See also:
-  ///
-  ///   * `SystemUiMode` to learn about the different behaviors and the Android API that each one requires.
-  ///
-  ///   *  Migration guide proposed (if applicable).
-  ///
-  ///   https://docs.flutter.dev/release/breaking-changes/default-systemuimode-edge-to-edge.
+  /// Describes different display configurations for both Android and iOS. These modes mimic Android-specific display
+  /// setups. Flutter apps use `SystemUiMode.edgeToEdge` by default and setting any other will `NOT` work unless you
+  /// perform the migration detailed in
+  /// https://docs.flutter.dev/release/breaking-changes/default-systemuimode-edge-to-edge.
   // TODO("yapmDev")
   // - Download API 35 (android 15) x86 Google Play Image to test this.
   final SystemUiMode? systemUiMode;
 
+  /// The system ui overlays used when [systemUiMode] has been set as [SystemUiMode.manual]. Please refer to this to
+  /// fully understand how it works.
+  final List<SystemUiOverlay>? overlays;
+
   /// The child of this widget. Normally the view itself.
   final Widget Function(double statusBarHeight) builder;
 
-  ///Wraps any view in to customize the status bar behavior for that view in particular.
+  /// {@macro status_bar_controller_description}
   const StatusBarController({
     super.key,
     required this.builder,
     this.statusBarColorResolver,
     this.allowBrightnessContrast = true,
     this.allowOverlap = true,
-    this.systemUiMode
-  });
+    this.systemUiMode,
+    this.overlays
+  }) : assert (
+    (systemUiMode == null || systemUiMode != SystemUiMode.manual) ||
+    (systemUiMode == SystemUiMode.manual && overlays != null),
+    "When systemUiMode is set as manual, overlays needs to be specified (can be empty but not null)"
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -69,12 +71,12 @@ class StatusBarController extends StatelessWidget {
     final statusBarBrightness = allowBrightnessContrast
         ? (isDarkMode ? Brightness.dark : Brightness.light)
         : (isDarkMode ? Brightness.light : Brightness.dark);
+    SystemChrome.setEnabledSystemUIMode(systemUiMode ?? SystemUiMode.edgeToEdge, overlays: overlays);
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: statusBarColorResolver?.call(isDarkMode) ?? Colors.transparent,
       statusBarIconBrightness: statusBarIconBrightness,
       statusBarBrightness: statusBarBrightness,
     ));
-    SystemChrome.setEnabledSystemUIMode(systemUiMode ?? SystemUiMode.edgeToEdge);
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     return Padding(
       padding: EdgeInsets.only(top: allowOverlap ? 0.0 : statusBarHeight),
