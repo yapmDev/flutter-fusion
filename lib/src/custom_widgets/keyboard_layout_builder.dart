@@ -1,6 +1,6 @@
 /*
   author: yapmDev
-  lastModifiedDate: 24/02/25
+  lastModifiedDate: 23/05/25
   repository: https://github.com/yapmDev/flutter_fusion
  */
 
@@ -62,7 +62,9 @@ class KeyboardLayoutBuilder extends StatefulWidget {
 }
 
 class _KeyboardLayoutBuilderState extends State<KeyboardLayoutBuilder> with WidgetsBindingObserver {
+
   bool _isKeyboardVisible = false;
+  double _bottomInset = 0.0;
 
   @override
   void initState() {
@@ -72,7 +74,7 @@ class _KeyboardLayoutBuilderState extends State<KeyboardLayoutBuilder> with Widg
 
   @override
   void didChangeMetrics() {
-    _checkKeyboardState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkKeyboardState());
     super.didChangeMetrics();
   }
 
@@ -86,21 +88,21 @@ class _KeyboardLayoutBuilderState extends State<KeyboardLayoutBuilder> with Widg
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final isVisible = bottomInset > 0;
     if (isVisible != _isKeyboardVisible) {
-      setState(() => _isKeyboardVisible = isVisible);
+      setState(() {
+        _isKeyboardVisible = isVisible;
+        _bottomInset = bottomInset;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final double bottomInset = MediaQuery.of(context).viewInsets.bottom;
-    return !widget.allowOverlap ? AnimatedContainer(
-      color: widget.backgroundColor ?? Theme.of(context).scaffoldBackgroundColor,
+    return AnimatedContainer(
+      padding: EdgeInsets.only(bottom: _isKeyboardVisible ? _bottomInset : 0.0),
       curve: widget.curve,
       duration: widget.animationDuration,
-      padding: EdgeInsets.only(
-        bottom: widget.allowOverlap ? 0.0 : bottomInset,
-      ),
+      color: widget.backgroundColor ?? Theme.of(context).scaffoldBackgroundColor,
       child: widget.builder(context, _isKeyboardVisible),
-    ) : widget.builder(context, _isKeyboardVisible);
+    );
   }
 }
