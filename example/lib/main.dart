@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_fusion/flutter_fusion.dart';
 
 void main() {
@@ -13,16 +12,37 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: StatusBarController(
-        statusBarColorResolver: (_) => Colors.blue,
-        allowBrightnessContrast: false,
-        allowOverlap: false,
-        systemUiMode: SystemUiMode.manual,
-        overlays: [SystemUiOverlay.top],
-        builder: (_) => Scaffold(
-          body: Text("HELLO WORLD")
-        ),
-      )
+      home: HomePage()
+    );
+  }
+}
+
+class HomePage extends StatelessWidget {
+
+  HomePage({super.key});
+
+  final controller = OverlayPortalController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        body: Center(
+          child: TextButton(
+            // onPressed: controller.toggle,
+            onPressed: () => showToast(
+                context: context,
+                leadingIcon: Icon(Icons.warning_amber_outlined),
+                // message: "Hello from overlay, this is intentionally a bigger message body",
+                message: "Hello from overlay",
+                action: ToastAction(
+                    display: Icon(Icons.close_outlined),
+                    callback: () {}
+                ),
+                autoClose: false
+            ),
+            child: Text("Press Me"),
+          )
+        )
     );
   }
 }

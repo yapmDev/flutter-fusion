@@ -1,22 +1,21 @@
 /*
   author: yapmDev
-  lastModifiedDate: 27/01/25
+  lastModifiedDate: 30/07/25
   repository: https://github.com/yapmDev/flutter_fusion
  */
-
 import 'package:flutter/material.dart';
 
-/// Displays a floating message with an optional action.
+/// Displays a floating message with an optional leadingIcon and action.
 ///
-/// @Params:
-///
-/// [message] : The message will be shown (required).
+/// Params:
 ///
 /// [context] : Place in the widget tree where this toast is attached.
 ///
+/// [message] : The message will be shown.
+///
 /// [decoration] : Can be used to customize the appearance of the toast container.
 ///
-/// [duration] : Sets how long the toast will be visible (default is 2 seconds).
+/// [durationInSeconds] : Sets how long the toast will be visible (in seconds).
 ///
 /// [leadingIcon] : Can be an optional icon displayed before the message.
 ///
@@ -28,67 +27,102 @@ import 'package:flutter/material.dart';
 ///
 /// [margin] : Empty space to surround the toast.
 ///
-/// [onAction] : An optional callback that is triggered when the TextButton is tapped.
+/// [padding] : Empty space inside the toast.
 ///
-/// [labelAction] : The name of the action itself.
+/// [action] : Callback action (optional while autoClose is true, required otherwise). When called, toast will
+/// be closed immediately (the closure is implicit, without depending on the body of the callback).
+/// ```dart
+/// // Simple action to close the toast.
+/// action: ToastAction(
+///    display: Icon(Icons.close_outlined),
+///    callback: () {
+///       // No body needed.
+///    }
+/// )
+/// ```
+/// [autoClose] : Causes it to close automatically after the set duration has elapsed. If false, an explicit action
+/// is required.
 ///
-/// @See [Builder], could be necessary to make sure the most inner context is
-/// provided, specially when you use a specific theme with [ToastTheme].
+/// For full customization across the entire app, See [ToastThemeData], [ToastTheme] and [ToastThemeExtension].
 void showToast({
   required BuildContext context,
   required String message,
-  BoxDecoration? decoration,
-  Duration duration = const Duration(seconds: 2),
-  Icon? leadingIcon,
+  Widget? leadingIcon,
+  ToastAction? action,
   TextStyle? textStyle,
+  BoxDecoration? decoration,
+  int durationInSeconds = 2,
   Alignment position = Alignment.bottomCenter,
-  EdgeInsetsGeometry margin = const EdgeInsets.all(10.0),
-  ToastCallback? onAction,
-  String? actionLabel
+  EdgeInsetsGeometry margin = const EdgeInsets.all(12.0),
+  EdgeInsetsGeometry padding = const EdgeInsets.all(12.0),
+  double spacing = 12.0,
+  bool autoClose = true
 }) {
-  assert(onAction == null || actionLabel != null,
-  "An action tag is required if you want to do some callback");
-  ToastThemeData toastTheme = ToastTheme.of(context);
-  OverlayEntry overlayEntry = OverlayEntry(
-    builder: (context) => Material(
-      color: Colors.transparent,
-      child: Align(
-        alignment: position,
-        child: Container(
-          margin: margin,
-          decoration: decoration ?? toastTheme.decoration,
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            mainAxisSize: onAction != null ? MainAxisSize.max : MainAxisSize.min,
-            children: [
-              if (leadingIcon != null) leadingIcon,
-              if (leadingIcon != null) const SizedBox(width: 24.0),
-              Flexible(
-                fit: onAction != null ? FlexFit.tight : FlexFit.loose,
-                child: Text(
-                  message,
-                  style: textStyle ?? toastTheme.textStyle,
-                ),
-              ),
-              if (onAction != null) TextButton(onPressed: onAction, child: Text(actionLabel!))
-            ],
-          ),
-        ),
-      ),
-    ),
+  assert(autoClose == false && action != null,
+    "Because autoClose is false, you need an explicit action to close this toast. "
+    "If you only need those without additional logic, you can leave an empty callback."
   );
-
+  final toastTheme = ToastTheme.of(context);
+  late final OverlayEntry overlayEntry;
+  overlayEntry = OverlayEntry(
+      builder: (context) => SafeArea(
+        child: Align(
+            alignment: position,
+            child: Container(
+                margin: margin,
+                padding: padding,
+                decoration: decoration ?? toastTheme.decoration,
+                child: Row(
+                    spacing: spacing,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (leadingIcon != null) leadingIcon,
+                      Flexible(child: Text(message, style: textStyle ?? toastTheme.textStyle)),
+                      if(action != null ) GestureDetector(
+                          onTap: () {
+                            try {
+                              action.callback.call();
+                            } finally {
+                              if (overlayEntry.mounted) overlayEntry.remove();
+                            }
+                          },
+                          child: action.display
+                      )
+                    ]
+                )
+            )
+        )
+      )
+  );
   Overlay.of(context).insert(overlayEntry);
+  if(autoClose) {
+    Future.delayed(Duration(seconds: durationInSeconds), () {
+      if(overlayEntry.mounted) {
+        overlayEntry.remove();
+      }
+    });
+  }
+}
 
-  Future.delayed(duration, () {
-    overlayEntry.remove();
-  });
+@immutable
+/// Defines the data for an action used in [showToast].
+class ToastAction {
+
+  /// What should this action display.
+  final Widget display;
+
+  /// What should this action do when tapped.
+  final VoidCallback callback;
+
+  /// Creates an action to be used in [showToast].
+  const ToastAction({required this.display, required this.callback});
 }
 
 /// Holds the theming data for toast messages.
 @immutable
 class ToastThemeData extends ThemeExtension<ToastThemeData> {
+
   /// The decoration for the toast container.
   final BoxDecoration? decoration;
 
@@ -118,6 +152,7 @@ class ToastThemeData extends ThemeExtension<ToastThemeData> {
     );
   }
 
+  // Needed for ToastTheme comparison.
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -126,21 +161,37 @@ class ToastThemeData extends ThemeExtension<ToastThemeData> {
               decoration == other.decoration &&
               textStyle == other.textStyle;
 
+  // Needed for ToastTheme comparison.
   @override
   int get hashCode => decoration.hashCode ^ textStyle.hashCode;
 }
 
+/// Extension on [ThemeData] to set [ToastThemeData].
+extension ToastThemeExtension on ThemeData {
+
+  /// Retrieves the [ToastThemeData] from the theme extensions.
+  ///
+  /// If no [ToastThemeData] is found, a default one is created.
+  ToastThemeData get toastTheme => extension<ToastThemeData>()
+      ?? ToastThemeData(
+        decoration: BoxDecoration(
+          border: Border.all(color: colorScheme.onSurface),
+          borderRadius: const BorderRadius.all(Radius.circular(20.0)),
+          color: colorScheme.surface,
+        ),
+        textStyle: textTheme.bodyLarge
+      );
+}
+
 /// An inherited widget that provides [ToastThemeData] to its descendants.
+@immutable
 class ToastTheme extends InheritedWidget {
+
   /// The [ToastThemeData] that is provided to the descendants.
   final ToastThemeData data;
 
   /// Creates a [ToastTheme] with the given [data] and [child].
-  const ToastTheme({
-    super.key,
-    required this.data,
-    required super.child,
-  });
+  const ToastTheme({super.key, required this.data, required super.child});
 
   /// Retrieves the nearest [ToastThemeData] up the widget tree.
   ///
@@ -154,23 +205,3 @@ class ToastTheme extends InheritedWidget {
   @override
   bool updateShouldNotify(ToastTheme oldWidget) => data != oldWidget.data;
 }
-
-/// Extension on [ThemeData] to include [ToastThemeData].
-extension ToastThemeExtension on ThemeData {
-  /// Retrieves the [ToastThemeData] from the theme extensions.
-  ///
-  /// If no [ToastThemeData] is found, a default one is created.
-  ToastThemeData get toastTheme {
-    return extension<ToastThemeData>() ??
-        ToastThemeData(
-          decoration: BoxDecoration(
-            border: Border.all(color: colorScheme.onSurface),
-            borderRadius: const BorderRadius.all(Radius.circular(20.0)),
-            color: colorScheme.surface,
-          ),
-          textStyle: textTheme.bodyLarge,
-        );
-  }
-}
-
-typedef ToastCallback = void Function();
