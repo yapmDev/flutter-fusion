@@ -58,7 +58,7 @@ void showToast({
   double spacing = 12.0,
   bool autoClose = true
 }) {
-  assert(autoClose == false && action != null,
+  assert(autoClose == true || (autoClose == false && action != null),
     "Because autoClose is false, you need an explicit action to close this toast. "
     "If you only need those without additional logic, you can leave an empty callback."
   );
@@ -105,7 +105,6 @@ void showToast({
   }
 }
 
-@immutable
 /// Defines the data for an action used in [showToast].
 class ToastAction {
 
@@ -120,7 +119,6 @@ class ToastAction {
 }
 
 /// Holds the theming data for toast messages.
-@immutable
 class ToastThemeData extends ThemeExtension<ToastThemeData> {
 
   /// The decoration for the toast container.
@@ -184,7 +182,6 @@ extension ToastThemeExtension on ThemeData {
 }
 
 /// An inherited widget that provides [ToastThemeData] to its descendants.
-@immutable
 class ToastTheme extends InheritedWidget {
 
   /// The [ToastThemeData] that is provided to the descendants.
