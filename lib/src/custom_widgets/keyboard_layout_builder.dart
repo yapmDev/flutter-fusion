@@ -1,6 +1,6 @@
 /*
   author: yapmDev
-  lastModifiedDate: 23/05/25
+  lastModifiedDate: 12/08/25
   repository: https://github.com/yapmDev/flutter_fusion
  */
 
@@ -74,7 +74,10 @@ class _KeyboardLayoutBuilderState extends State<KeyboardLayoutBuilder> with Widg
 
   @override
   void didChangeMetrics() {
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkKeyboardState());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return; // avoid calling with an unmounted context
+      _checkKeyboardState();
+    });
     super.didChangeMetrics();
   }
 
@@ -85,7 +88,9 @@ class _KeyboardLayoutBuilderState extends State<KeyboardLayoutBuilder> with Widg
   }
 
   void _checkKeyboardState() {
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final mq = MediaQuery.maybeOf(context);
+    if (mq == null) return; // non valid media query context
+    final bottomInset = mq.viewInsets.bottom;
     final isVisible = bottomInset > 0;
     if (isVisible != _isKeyboardVisible) {
       setState(() {
