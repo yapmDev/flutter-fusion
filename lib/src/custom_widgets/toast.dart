@@ -73,13 +73,21 @@ void showToast({
                 padding: padding,
                 decoration: decoration ?? toastTheme.decoration,
                 child: Row(
+                    mainAxisSize: action != null ? MainAxisSize.max : MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     spacing: spacing,
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (leadingIcon != null) leadingIcon,
-                      Flexible(child: Text(message, style: textStyle ?? toastTheme.textStyle)),
-                      if(action != null ) GestureDetector(
+                      Flexible(
+                        child: Row(
+                          spacing: spacing,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (leadingIcon != null) leadingIcon,
+                            Flexible(child: Text(message, style: textStyle ?? toastTheme.textStyle)),
+                          ],
+                        ),
+                      ),
+                      if(action != null) GestureDetector(
                           onTap: () {
                             try {
                               action.callback.call();

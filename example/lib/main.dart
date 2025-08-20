@@ -28,19 +28,17 @@ class HomePage extends StatelessWidget {
     return Scaffold(
         body: Center(
           child: TextButton(
-            // onPressed: controller.toggle,
             onPressed: () => showToast(
+              leadingIcon: Icon(Icons.done_outline),
                 context: context,
-                leadingIcon: Icon(Icons.warning_amber_outlined),
-                // message: "Hello from overlay, this is intentionally a bigger message body",
-                message: "Hello from overlay",
+                durationInSeconds: 5,
+                message: "Cliente Reportado",
                 action: ToastAction(
-                    display: Icon(Icons.close_outlined),
+                    display: Material(child: Text("Ir a Inicio")),
                     callback: () {}
-                ),
-                autoClose: false
+                )
             ),
-            child: Text("Press Me"),
+            child: Text("Show Toast"),
           )
         )
     );
